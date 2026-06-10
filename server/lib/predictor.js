@@ -9,32 +9,97 @@ const path = require('path');
 
 const PREDICT_SCRIPT = path.join(__dirname, '..', 'predict.py');
 
+let pyProcess = null;
+let isReady = false;
+let pendingResolves = [];
+
+function startWorker() {
+  console.log('Starting persistent Python predictor worker...');
+  
+  let pythonCmd = 'python3';
+  let proc = spawn(pythonCmd, [PREDICT_SCRIPT]);
+  let stdoutBuffer = '';
+
+  function setupProcess(p, cmd) {
+    p.on('error', (err) => {
+      if (err.code === 'ENOENT' && cmd === 'python3') {
+        console.warn('python3 not found. Falling back to python...');
+        proc = spawn('python', [PREDICT_SCRIPT]);
+        setupProcess(proc, 'python');
+      } else {
+        console.error(`Python spawn error (${cmd}):`, err.message);
+        // Fail any pending predictions
+        const active = pendingResolves;
+        pendingResolves = [];
+        active.forEach(({ reject }) => reject(err));
+      }
+    });
+
+    p.stdout.on('data', (chunk) => {
+      stdoutBuffer += chunk.toString();
+      let lines = stdoutBuffer.split('\n');
+      stdoutBuffer = lines.pop();
+      for (let line of lines) {
+        line = line.trim();
+        if (!line) continue;
+        if (line === 'READY') {
+          isReady = true;
+          console.log('Python worker is READY.');
+          continue;
+        }
+        if (pendingResolves.length > 0) {
+          const { resolve, reject } = pendingResolves.shift();
+          try {
+            const resVal = JSON.parse(line);
+            if (resVal.error) reject(new Error(resVal.error));
+            else resolve(resVal.probability);
+          } catch (e) {
+            reject(e);
+          }
+        }
+      }
+    });
+
+    p.stderr.on('data', (chunk) => {
+      console.warn('Python Stderr:', chunk.toString().trim());
+    });
+
+    p.on('close', (code) => {
+      console.warn(`Python worker exited with code ${code}`);
+      isReady = false;
+      const active = pendingResolves;
+      pendingResolves = [];
+      active.forEach(({ reject }) => reject(new Error('Python worker process closed')));
+      // Restart after a brief delay
+      setTimeout(startWorker, 3000);
+    });
+
+    pyProcess = p;
+  }
+
+  setupProcess(proc, pythonCmd);
+}
+
+// Initialize the worker process
+startWorker();
+
 /**
  * @param {Object} inputData  – keyed by feature names expected by the model
  * @returns {Promise<number>} – default probability (class=1, i.e. default)
  */
 function predict(inputData) {
   return new Promise((resolve, reject) => {
-    const py = spawn('python', [PREDICT_SCRIPT, JSON.stringify(inputData)]);
-
-    let stdout = '';
-    let stderr = '';
-
-    py.stdout.on('data', (chunk) => { stdout += chunk.toString(); });
-    py.stderr.on('data', (chunk) => { stderr += chunk.toString(); });
-
-    py.on('close', (code) => {
-      if (code !== 0) {
-        return reject(new Error(`predict.py exited ${code}: ${stderr}`));
-      }
-      try {
-        const result = JSON.parse(stdout.trim());
-        resolve(result.probability);
-      } catch (e) {
-        reject(new Error(`Failed to parse predict.py output: ${stdout}`));
-      }
-    });
+    if (!pyProcess) {
+      return reject(new Error('Python worker process is not running'));
+    }
+    
+    // Push resolver to FIFO queue
+    pendingResolves.push({ resolve, reject });
+    
+    // Write input JSON line to stdin
+    pyProcess.stdin.write(JSON.stringify(inputData) + '\n');
   });
 }
 
 module.exports = { predict };
+

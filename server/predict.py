@@ -60,19 +60,30 @@ def build_feature_row(raw: dict, info: dict, features: list) -> pd.DataFrame:
 
 
 def main():
-    if len(sys.argv) < 2:
-        print(json.dumps({'error': 'No input provided'}))
+    # Load assets once at startup
+    try:
+        rf, scaler, info, features = load_assets()
+        # Print READY to stdout so Node knows the worker is ready
+        print("READY", flush=True)
+    except Exception as e:
+        print(json.dumps({'error': f'Failed to load assets: {str(e)}'}), flush=True)
         sys.exit(1)
 
-    raw = json.loads(sys.argv[1])
-    rf, scaler, info, features = load_assets()
-
-    df = build_feature_row(raw, info, features)
-    df_scaled = pd.DataFrame(scaler.transform(df), columns=features)
-
-    prob = float(rf.predict_proba(df_scaled)[0][1])
-    print(json.dumps({'probability': prob}))
+    # Read inputs line-by-line from stdin
+    for line in sys.stdin:
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            raw = json.loads(line)
+            df = build_feature_row(raw, info, features)
+            df_scaled = pd.DataFrame(scaler.transform(df), columns=features)
+            prob = float(rf.predict_proba(df_scaled)[0][1])
+            print(json.dumps({'probability': prob}), flush=True)
+        except Exception as e:
+            print(json.dumps({'error': str(e)}), flush=True)
 
 
 if __name__ == '__main__':
     main()
+
