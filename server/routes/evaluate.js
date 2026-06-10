@@ -7,6 +7,7 @@
  */
 const express   = require('express');
 const router    = express.Router();
+const mongoose  = require('mongoose');
 const { predict } = require('../lib/predictor');
 const Evaluation  = require('../models/Evaluation');
 const esgData     = require('../data/country_esg_data.json');
@@ -70,18 +71,31 @@ router.post('/', async (req, res) => {
       pm25:                countryRecord.pm25,
     } : {};
 
-    // ── Persist to MongoDB ─────────────────────────────────────
-    const evaluation = await Evaluation.create({
-      inputs: { ...mlInput, country },
-      risk_probability,
-      risk_label: label,
-      esg_score,
-      composite_score: composite,
-      esg_details,
-    });
+    // ── Persist to MongoDB (Fail-safe) ─────────────────────────
+    let evaluationId = null;
+    let createdAt = new Date();
+
+    try {
+      if (mongoose.connection.readyState === 1) {
+        const evaluation = await Evaluation.create({
+          inputs: { ...mlInput, country },
+          risk_probability,
+          risk_label: label,
+          esg_score,
+          composite_score: composite,
+          esg_details,
+        });
+        evaluationId = evaluation._id;
+        createdAt = evaluation.createdAt;
+      } else {
+        console.warn('MongoDB not connected, skipping persistence.');
+      }
+    } catch (dbErr) {
+      console.error('Failed to persist evaluation to database:', dbErr.message);
+    }
 
     res.json({
-      id: evaluation._id,
+      id: evaluationId,
       risk_probability,
       risk_label: label,
       esg_score,
@@ -89,7 +103,7 @@ router.post('/', async (req, res) => {
       composite_label: riskLabel(composite),
       esg_details,
       country: countryRecord ? countryRecord.country : country,
-      createdAt: evaluation.createdAt,
+      createdAt: createdAt,
       inputs: {
         person_income: person_income,
         loan_amnt: loan_amnt,

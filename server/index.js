@@ -43,17 +43,24 @@ app.use('/api/history',   require('./routes/history'));
 app.get('/api/health', (_, res) => res.json({ status: 'ok' }));
 
 // ── MongoDB Connection + Server Start ─────────────────────────────────────────
-const PORT      = process.env.PORT || 5000;
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/aetheris_risk';
+// Disable buffering so queries fail fast when database is offline
+mongoose.set('bufferCommands', false);
 
-mongoose
-  .connect(MONGO_URI)
-  .then(() => {
-    console.log('Connected to MongoDB');
-    app.listen(PORT, () => console.log(`Aetheris Risk server running on port ${PORT}`));
-  })
-  .catch((err) => {
-    console.error('MongoDB connection failed:', err.message);
-    console.warn('Starting server WITHOUT database (history disabled)');
-    app.listen(PORT, () => console.log(`Server running on port ${PORT} (no DB)`));
-  });
+const PORT      = process.env.PORT || 5000;
+const MONGO_URI = process.env.MONGO_URI;
+
+// Start server immediately so Render health checks succeed without waiting for database timeout
+app.listen(PORT, () => console.log(`Aetheris Risk server running on port ${PORT}`));
+
+if (MONGO_URI) {
+  mongoose
+    .connect(MONGO_URI)
+    .then(() => console.log('Connected to MongoDB'))
+    .catch((err) => {
+      console.error('MongoDB connection failed:', err.message);
+      console.warn('Running server WITHOUT database (history disabled)');
+    });
+} else {
+  console.warn('No MONGO_URI env variable set. Running server WITHOUT database (history disabled)');
+}
+
