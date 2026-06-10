@@ -11,8 +11,28 @@ const cors      = require('cors');
 const app = express();
 
 // ── Middleware ────────────────────────────────────────────────────────────────
-app.use(cors());
+const ALLOWED_ORIGINS = [
+  'http://localhost:5173',   // Vite dev server
+  'http://localhost:4173',   // Vite preview
+  /\.vercel\.app$/,          // Any Vercel deployment (preview + production)
+  process.env.CLIENT_ORIGIN, // Explicit production URL (set in Render env vars)
+].filter(Boolean);
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow requests with no origin (curl, mobile apps, Render health checks)
+    if (!origin) return callback(null, true);
+    const allowed = ALLOWED_ORIGINS.some(o =>
+      o instanceof RegExp ? o.test(origin) : o === origin
+    );
+    allowed
+      ? callback(null, true)
+      : callback(new Error(`CORS: origin ${origin} not allowed`));
+  },
+  credentials: true,
+}));
 app.use(express.json());
+
 
 // ── Routes ────────────────────────────────────────────────────────────────────
 app.use('/api/countries', require('./routes/countries'));

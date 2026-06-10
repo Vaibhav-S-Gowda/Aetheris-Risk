@@ -26,8 +26,8 @@ __pycache__/
 *.pyo
 .Python
 
-# ── ML model binaries (large — regenerate via data_pipeline) ─────────
-server/model_assets/*.joblib
+# ── ML model binaries are intentionally committed (needed for deployment)
+# server/model_assets/*.joblib  ← do NOT exclude, Render needs these
 
 # ── Editor & OS ──────────────────────────────────────────────────────
 .vscode/*
