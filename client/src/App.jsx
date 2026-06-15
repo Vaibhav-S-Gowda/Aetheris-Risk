@@ -109,6 +109,36 @@ export default function App() {
     setShowHistory(false);
   };
 
+  const handleSelectRun = (run) => {
+    const runResult = run.result;
+    if (!runResult) return;
+
+    // 1. Update results panel
+    setResult(runResult);
+    localStorage.setItem('aetheris_active_result', JSON.stringify(runResult));
+
+    // 2. Update form inputs and restore hyperparameters
+    if (runResult.inputs) {
+      const inputs = {
+        person_age: runResult.inputs.person_age?.toString() || '',
+        person_income: runResult.inputs.person_income?.toString() || '',
+        person_emp_length: runResult.inputs.person_emp_length?.toString() || '',
+        loan_amnt: runResult.inputs.loan_amnt?.toString() || '',
+        loan_int_rate: runResult.inputs.loan_int_rate?.toString() || '',
+        person_home_ownership: runResult.inputs.person_home_ownership || 'RENT',
+        loan_intent: runResult.inputs.loan_intent || 'PERSONAL',
+        loan_grade: runResult.inputs.loan_grade || 'C',
+        cb_person_default_on_file: runResult.inputs.cb_person_default_on_file || 'N',
+        country: runResult.inputs.country || 'USA',
+        hyperparameters: run.hyperparameters || null,
+      };
+      setSelectedInputs(inputs);
+    }
+    
+    // Close drawer
+    setShowHistory(false);
+  };
+
 
   return (
     <div className="app-shell">
@@ -244,6 +274,7 @@ export default function App() {
               localStorage.removeItem('aetheris_model_runs');
               setModelRuns([]);
             }}
+            onSelectRun={handleSelectRun}
           />
         )}
       </div>

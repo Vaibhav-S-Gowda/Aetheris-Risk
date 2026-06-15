@@ -95,6 +95,10 @@ export default function RiskForm({ onSubmit, loading, initialData }) {
   useEffect(() => {
     if (initialData) {
       setForm(initialData);
+      if (initialData.hyperparameters) {
+        setHyper(initialData.hyperparameters);
+        setShowTuning(true);
+      }
     }
   }, [initialData]);
 

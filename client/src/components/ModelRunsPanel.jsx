@@ -50,8 +50,9 @@ export function loadModelRuns() {
   }
 }
 
-export default function ModelRunsPanel({ runs, onClear }) {
+export default function ModelRunsPanel({ runs, onClear, onSelectRun }) {
   const [showConfirm, setShowConfirm] = useState(false);
+  const [hoveredId, setHoveredId] = useState(null);
 
   // Find best AUC index for highlighting
   const bestIdx = runs.reduce((bestI, r, i) =>
@@ -76,10 +77,10 @@ export default function ModelRunsPanel({ runs, onClear }) {
       {/* Header row */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 1rem 0.75rem', flexShrink: 0 }}>
         <span style={{ fontSize: '0.72rem', color: 'var(--color-ink-3)' }}>
-          {runs.length} run{runs.length !== 1 ? 's' : ''} · Best AUC highlighted
+          {runs.length} run{runs.length !== 1 ? 's' : ''} · Click card to load evaluation
         </span>
         <button
-          onClick={() => setShowConfirm(true)}
+          onClick={(e) => { e.stopPropagation(); setShowConfirm(true); }}
           style={{ background: 'none', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', padding: '3px 9px', fontSize: '0.7rem', cursor: 'pointer', color: 'var(--color-ink-3)', transition: 'var(--transition)' }}
           onMouseEnter={e => { e.target.style.borderColor = '#dc2626'; e.target.style.color = '#dc2626'; }}
           onMouseLeave={e => { e.target.style.borderColor = 'var(--color-border)'; e.target.style.color = 'var(--color-ink-3)'; }}
@@ -92,23 +93,30 @@ export default function ModelRunsPanel({ runs, onClear }) {
       <div style={{ overflowY: 'auto', flex: 1, padding: '0 1rem 1rem' }}>
         {runs.map((run, i) => {
           const isBest = i === bestIdx;
-          const cls = getRiskClass(run.risk_label);
+          const isHovered = hoveredId === run.id;
           const hp = run.hyperparameters || {};
           return (
             <div
               key={run.id}
+              onClick={() => onSelectRun && onSelectRun(run)}
+              onMouseEnter={() => setHoveredId(run.id)}
+              onMouseLeave={() => setHoveredId(null)}
               style={{
                 borderRadius: 'var(--radius-md)',
-                border: `1px solid ${isBest ? 'rgba(0,0,0,0.25)' : 'var(--color-border)'}`,
+                border: `1px solid ${isBest ? (isHovered ? 'var(--color-ink)' : 'rgba(0,0,0,0.35)') : (isHovered ? 'var(--color-ink-2)' : 'var(--color-border)')}`,
                 backgroundColor: isBest ? 'var(--color-ink)' : 'var(--color-bg)',
                 color: isBest ? 'var(--color-bg)' : 'var(--color-ink)',
                 padding: '0.75rem',
                 marginBottom: '0.6rem',
                 position: 'relative',
+                cursor: 'pointer',
+                transform: isHovered ? 'translateY(-2px)' : 'none',
+                boxShadow: isHovered ? '0 4px 12px rgba(0,0,0,0.08)' : 'none',
+                transition: 'transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease',
               }}
             >
               {isBest && (
-                <span style={{ position: 'absolute', top: '-9px', left: '10px', backgroundColor: 'var(--color-ink)', color: 'var(--color-bg)', fontSize: '0.58rem', fontWeight: 700, padding: '1px 7px', borderRadius: '99px', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+                <span style={{ position: 'absolute', top: '-9px', left: '10px', backgroundColor: 'var(--color-ink)', color: 'var(--color-bg)', fontSize: '0.58rem', fontWeight: 700, padding: '1px 7px', borderRadius: '99px', letterSpacing: '0.05em', textTransform: 'uppercase', border: isBest && isHovered ? '1px solid var(--color-bg)' : 'none' }}>
                   ★ Best AUC
                 </span>
               )}
