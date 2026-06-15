@@ -148,7 +148,7 @@ export default function ModelComparisonPanel() {
           </h4>
           <ul style={{ paddingLeft: '1.1rem', fontSize: '0.78rem', color: 'var(--color-ink-2)', display: 'flex', flexDirection: 'column', gap: '0.6rem', lineHeight: 1.45 }}>
             <li>
-              <strong>Interactive Tuning:</strong> Runs parallelized training in $\sim 30\text{--}150\text{ ms}$, ensuring instant responsiveness during hyperparameter adjustments.
+              <strong>Interactive Tuning:</strong> Runs parallelized training in ~30–150 ms, ensuring instant responsiveness during hyperparameter adjustments.
             </li>
             <li>
               <strong>Outlier Resilience:</strong> Rank-based decision splitting is naturally invariant to extreme income or age values common in real-world credit datasets.
