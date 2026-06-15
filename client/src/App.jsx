@@ -113,12 +113,17 @@ export default function App() {
     let runResult = run.result;
     if (!runResult) {
       // Fallback for runs generated before the fix
+      const riskProb = run.risk_probability ?? 0;
+      const compScore = run.composite_score ?? 0.5;
+      // Reconstruct esg_score: composite = 0.7 * risk + 0.3 * (1 - esg) => esg = (0.7 * risk + 0.3 - composite) / 0.3
+      const reconstructedEsg = (0.7 * riskProb + 0.3 - compScore) / 0.3;
       runResult = {
-        risk_probability: run.risk_probability,
+        risk_probability: riskProb,
         risk_label: run.risk_label,
-        composite_score: run.composite_score,
+        composite_score: compScore,
         composite_label: run.risk_label,
         tuning: run.metrics,
+        esg_score: Math.max(0, Math.min(1, reconstructedEsg)),
       };
     }
 
