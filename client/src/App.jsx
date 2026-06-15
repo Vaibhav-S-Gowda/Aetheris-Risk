@@ -194,18 +194,6 @@ export default function App() {
                 </span>
               )}
             </button>
-            <button
-              onClick={() => { setDrawerTab('compare'); setShowHistory(true); }}
-              className="btn-history-toggle"
-              aria-label="Toggle model comparison panel"
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ verticalAlign: 'middle' }}>
-                <line x1="18" y1="20" x2="18" y2="10" />
-                <line x1="12" y1="20" x2="12" y2="4" />
-                <line x1="6" y1="20" x2="6" y2="14" />
-              </svg>
-              <span>Model Selection</span>
-            </button>
             <div className="header-badge">Powered by Random Forest</div>
           </div>
         </div>
@@ -257,6 +245,15 @@ export default function App() {
           <ResultsPanel result={result} />
         </div>
 
+        {/* Model Card & Technical Benchmarks */}
+        <div className="card anim-in" style={{ gridColumn: '1 / -1', marginTop: '1rem', padding: '1.5rem' }}>
+          <div className="card-header" style={{ marginBottom: '1.25rem' }}>
+            <div className="card-title">Model Selection & Benchmarks</div>
+            <span className="card-badge" style={{ backgroundColor: 'var(--color-ink)', color: 'var(--color-bg)' }}>Methodology</span>
+          </div>
+          <ModelComparisonPanel />
+        </div>
+
       </main>
 
       {/* ── History Drawer ────────────────────────────────────────── */}
@@ -266,13 +263,7 @@ export default function App() {
       />
       <div className={`history-drawer ${showHistory ? 'open' : ''}`}>
         <div className="drawer-header">
-          <div className="drawer-title">
-            {drawerTab === 'history' 
-              ? 'Evaluation History' 
-              : drawerTab === 'models' 
-                ? 'Model Evaluation' 
-                : 'Model Selection'}
-          </div>
+          <div className="drawer-title">{drawerTab === 'history' ? 'Evaluation History' : 'Model Evaluation'}</div>
           <button className="btn-drawer-close" onClick={() => setShowHistory(false)} aria-label="Close drawer">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -283,7 +274,7 @@ export default function App() {
 
         {/* Drawer tabs */}
         <div style={{ display: 'flex', borderBottom: '1px solid var(--color-border)', padding: '0 1rem', flexShrink: 0 }}>
-          {[['history', 'History'], ['models', 'Model Runs'], ['compare', 'Model Selection']].map(([tab, label]) => (
+          {[['history', 'History'], ['models', 'Model Runs']].map(([tab, label]) => (
             <button
               key={tab}
               onClick={() => setDrawerTab(tab)}
@@ -310,7 +301,6 @@ export default function App() {
             onSelectRun={handleSelectRun}
           />
         )}
-        {showHistory && drawerTab === 'compare' && <ModelComparisonPanel />}
       </div>
     </div>
   );

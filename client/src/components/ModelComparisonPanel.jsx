@@ -1,6 +1,6 @@
 /**
  * ModelComparisonPanel.jsx – Detailed model evaluation and selection comparison.
- * Shows why Random Forest is selected over Logistic Regression, XGBoost, and SVM.
+ * Optimized for a full-width dashboard methodology section.
  */
 import React from 'react';
 
@@ -45,17 +45,22 @@ export default function ModelComparisonPanel() {
   ];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflowY: 'auto', padding: '0 1rem 1.5rem' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', width: '100%' }}>
       
       {/* Intro Context */}
-      <div style={{ marginBottom: '1.25rem' }}>
-        <p style={{ fontSize: '0.78rem', color: 'var(--color-ink-3)', lineHeight: 1.5 }}>
-          Evaluating risk from credit indicators combined with country ESG factors requires a model that is resilient to financial noise and fast enough to support real-time interactive tuning. Below is our benchmark comparison:
+      <div>
+        <p style={{ fontSize: '0.82rem', color: 'var(--color-ink-3)', lineHeight: 1.5, maxWidth: '800px' }}>
+          To assess credit risk alongside country ESG factors, Aetheris Risk benchmarks multiple candidate algorithms. The selected model must handle high-dimensional collinear parameters and remain computationally efficient for real-time interactive user hyperparameter tuning.
         </p>
       </div>
 
-      {/* Model Cards Grid */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.5rem' }}>
+      {/* Model Cards Grid - Horizontal layout on wide screens */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+        gap: '1rem',
+        width: '100%'
+      }}>
         {models.map((m) => (
           <div
             key={m.name}
@@ -64,72 +69,98 @@ export default function ModelComparisonPanel() {
               border: `1px solid ${m.selected ? 'var(--color-ink)' : 'var(--color-border)'}`,
               backgroundColor: m.selected ? 'var(--color-ink)' : 'var(--color-bg-alt)',
               color: m.selected ? 'var(--color-bg)' : 'var(--color-ink)',
-              padding: '0.85rem',
+              padding: '1rem',
               boxShadow: m.selected ? 'var(--shadow-md)' : 'none',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
               transition: 'var(--transition)',
             }}
           >
-            {/* Model Name & Badge */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-              <span style={{ fontSize: '0.82rem', fontWeight: 700, fontFamily: 'var(--font-head)' }}>
-                {m.name}
-              </span>
-              {m.selected && (
-                <span style={{
-                  fontSize: '0.58rem', fontWeight: 800, padding: '1px 6px', borderRadius: '4px',
-                  backgroundColor: '#ffffff', color: '#111111', textTransform: 'uppercase', letterSpacing: '0.04em'
-                }}>
-                  Selected
+            <div>
+              {/* Model Name & Badge */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                <span style={{ fontSize: '0.88rem', fontWeight: 700, fontFamily: 'var(--font-head)' }}>
+                  {m.name}
                 </span>
-              )}
-            </div>
+                {m.selected && (
+                  <span style={{
+                    fontSize: '0.58rem', fontWeight: 800, padding: '2px 6px', borderRadius: '4px',
+                    backgroundColor: '#ffffff', color: '#111111', textTransform: 'uppercase', letterSpacing: '0.04em'
+                  }}>
+                    Selected
+                  </span>
+                )}
+              </div>
 
-            {/* Metrics List */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 12px', fontSize: '0.72rem', opacity: m.selected ? 0.9 : 1 }}>
-              <div>
-                <span style={{ color: m.selected ? 'rgba(255,255,255,0.65)' : 'var(--color-ink-3)' }}>Test AUC: </span>
-                <strong style={{ fontWeight: 600 }}>{m.auc}</strong>
-              </div>
-              <div>
-                <span style={{ color: m.selected ? 'rgba(255,255,255,0.65)' : 'var(--color-ink-3)' }}>Accuracy: </span>
-                <strong style={{ fontWeight: 600 }}>{m.accuracy}</strong>
-              </div>
-              <div style={{ gridColumn: 'span 2' }}>
-                <span style={{ color: m.selected ? 'rgba(255,255,255,0.65)' : 'var(--color-ink-3)' }}>Tuning Latency: </span>
-                <strong style={{ fontWeight: 600 }}>{m.tuningSpeed}</strong>
-              </div>
-              <div style={{ gridColumn: 'span 2' }}>
-                <span style={{ color: m.selected ? 'rgba(255,255,255,0.65)' : 'var(--color-ink-3)' }}>Outliers: </span>
-                <strong style={{ fontWeight: 600 }}>{m.robustness}</strong>
-              </div>
-              <div style={{ gridColumn: 'span 2' }}>
-                <span style={{ color: m.selected ? 'rgba(255,255,255,0.65)' : 'var(--color-ink-3)' }}>Explainability: </span>
-                <strong style={{ fontWeight: 600 }}>{m.interpretability}</strong>
+              {/* Metrics List */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.75rem', opacity: m.selected ? 0.9 : 1 }}>
+                <div>
+                  <span style={{ color: m.selected ? 'rgba(255,255,255,0.65)' : 'var(--color-ink-3)' }}>Test AUC: </span>
+                  <strong style={{ fontWeight: 600 }}>{m.auc}</strong>
+                </div>
+                <div>
+                  <span style={{ color: m.selected ? 'rgba(255,255,255,0.65)' : 'var(--color-ink-3)' }}>Accuracy: </span>
+                  <strong style={{ fontWeight: 600 }}>{m.accuracy}</strong>
+                </div>
+                <div>
+                  <span style={{ color: m.selected ? 'rgba(255,255,255,0.65)' : 'var(--color-ink-3)' }}>Tuning Latency: </span>
+                  <strong style={{ fontWeight: 600 }}>{m.tuningSpeed}</strong>
+                </div>
+                <div>
+                  <span style={{ color: m.selected ? 'rgba(255,255,255,0.65)' : 'var(--color-ink-3)' }}>Outlier Handling: </span>
+                  <strong style={{ fontWeight: 600 }}>{m.robustness}</strong>
+                </div>
+                <div>
+                  <span style={{ color: m.selected ? 'rgba(255,255,255,0.65)' : 'var(--color-ink-3)' }}>Explainability: </span>
+                  <strong style={{ fontWeight: 600 }}>{m.interpretability}</strong>
+                </div>
               </div>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Rationale Breakdown */}
-      <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '1rem' }}>
-        <h4 style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.6rem', fontFamily: 'var(--font-head)' }}>
-          Why Random Forest?
-        </h4>
-        <ul style={{ paddingLeft: '1rem', fontSize: '0.75rem', color: 'var(--color-ink-2)', display: 'flex', flexDirection: 'column', gap: '0.5rem', lineHeight: 1.45 }}>
-          <li>
-            <strong>Real-time On-the-fly Tuning:</strong> Random Forest trains parallelized trees in milliseconds (~30-150ms). This allows users to tweak hyperparameters (estimators, depth, min-split) interactively. Deep networks or SVMs require minutes, which breaks the web application UI loop.
-          </li>
-          <li>
-            <strong>Non-linear Decision Boundaries:</strong> Financial risk features, such as the ratio of loan amount to income, have sharp thresholds. Linear models (like Logistic Regression) cannot capture these without intensive, manual feature engineering.
-          </li>
-          <li>
-            <strong>Resilience to Extremes:</strong> Real financial datasets contain severe outliers (e.g. extremely high incomes or ages). Random Forest splits are rank-based and naturally invariant to extreme values, unlike distance-based models (SVM) or regression models.
-          </li>
-          <li>
-            <strong>Ensemble Stability (Bagging):</strong> Averaging predictions over multiple decision trees controls model variance and prevents overfitting, making it robust when generalizing to unseen portfolios.
-          </li>
-        </ul>
+      {/* Rationale Breakdown in 2 Columns on wide screens */}
+      <div style={{
+        borderTop: '1px solid var(--color-border)',
+        paddingTop: '1.25rem',
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+        gap: '1.5rem',
+        marginTop: '0.5rem'
+      }}>
+        <div>
+          <h4 style={{ fontSize: '0.92rem', fontWeight: 700, marginBottom: '0.75rem', fontFamily: 'var(--font-head)' }}>
+            Selected Architecture Justification
+          </h4>
+          <p style={{ fontSize: '0.78rem', color: 'var(--color-ink-2)', lineHeight: 1.5, marginBottom: '0.75rem' }}>
+            We chose <strong>Random Forest</strong> because it represents the optimal trade-off between predictive accuracy and real-time execution feasibility.
+          </p>
+          <p style={{ fontSize: '0.78rem', color: 'var(--color-ink-2)', lineHeight: 1.5 }}>
+            While Gradient Boosting (XGBoost) offers a marginal AUC gain (+0.3%), it introduces significant latency overhead that renders it unsuitable for on-the-fly interactive user tuning. Linear algorithms like Logistic Regression perform poorly due to the complex, non-linear thresholds inherent in financial credit ratios.
+          </p>
+        </div>
+        
+        <div>
+          <h4 style={{ fontSize: '0.92rem', fontWeight: 700, marginBottom: '0.75rem', fontFamily: 'var(--font-head)' }}>
+            Key Technical Rationale
+          </h4>
+          <ul style={{ paddingLeft: '1.1rem', fontSize: '0.78rem', color: 'var(--color-ink-2)', display: 'flex', flexDirection: 'column', gap: '0.6rem', lineHeight: 1.45 }}>
+            <li>
+              <strong>Interactive Tuning:</strong> Runs parallelized training in $\sim 30\text{--}150\text{ ms}$, ensuring instant responsiveness during hyperparameter adjustments.
+            </li>
+            <li>
+              <strong>Outlier Resilience:</strong> Rank-based decision splitting is naturally invariant to extreme income or age values common in real-world credit datasets.
+            </li>
+            <li>
+              <strong>Non-linear Modeling:</strong> Naturally maps threshold-based constraints (e.g. debt-to-income limits) without manual feature engineering.
+            </li>
+            <li>
+              <strong>Variance Control:</strong> The bagging ensemble mechanism averages multiple bootstrap trees, reducing overfitting risks.
+            </li>
+          </ul>
+        </div>
       </div>
 
     </div>
