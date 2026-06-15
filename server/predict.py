@@ -21,6 +21,7 @@ y_test_s = None
 encoders_s = {}
 scaler_s = None
 tuning_available = False
+preload_error = None
 
 
 def load_assets():
@@ -33,12 +34,15 @@ def load_assets():
 
 
 def preload_training_data(features):
-    global X_train_s, X_test_s, y_train_s, y_test_s, encoders_s, scaler_s, tuning_available
+    global X_train_s, X_test_s, y_train_s, y_test_s, encoders_s, scaler_s, tuning_available, preload_error
     try:
         if not CSV_PATH.exists():
+            preload_error = f'CSV not found at {CSV_PATH}'
+            print(f'Preload failed: {preload_error}', file=sys.stderr)
             return
         
         df = pd.read_csv(CSV_PATH)
+        print(f'CSV loaded: {len(df)} rows, columns={list(df.columns)[:5]}...', file=sys.stderr)
         df = df.dropna().drop_duplicates()
         
         # IQR Outlier cleaning
@@ -50,6 +54,7 @@ def preload_training_data(features):
             IQR = Q3 - Q1
             mask &= df[col].between(Q1 - 3 * IQR, Q3 + 3 * IQR)
         df_clean = df[mask].reset_index(drop=True)
+        print(f'After cleaning: {len(df_clean)} rows', file=sys.stderr)
         
         # Encoders
         cat_cols = ['person_home_ownership', 'loan_intent', 'cb_person_default_on_file']
@@ -64,8 +69,9 @@ def preload_training_data(features):
         scaler_s = StandardScaler()
         X_scaled = pd.DataFrame(scaler_s.fit_transform(X), columns=features)
         
-        # Subsample to 8000 records for fast training on limited cloud CPU
-        df_sub = pd.concat([X_scaled, y], axis=1).sample(n=8000, random_state=42)
+        # Subsample — use min(8000, available) so small datasets don't crash
+        n_sample = min(8000, len(df_clean))
+        df_sub = pd.concat([X_scaled, y.reset_index(drop=True)], axis=1).sample(n=n_sample, random_state=42)
         X_sub = df_sub[features]
         y_sub = df_sub['loan_status']
         
@@ -73,8 +79,11 @@ def preload_training_data(features):
             X_sub, y_sub, test_size=0.20, random_state=42, stratify=y_sub
         )
         tuning_available = True
+        print('Preload complete — tuning enabled.', file=sys.stderr)
     except Exception as e:
-        print(f"Failed to preload training data: {str(e)}", file=sys.stderr)
+        import traceback
+        preload_error = str(e)
+        print(f'Preload EXCEPTION: {traceback.format_exc()}', file=sys.stderr)
 
 
 def build_feature_row(raw: dict, info: dict, features: list) -> pd.DataFrame:
@@ -156,8 +165,14 @@ def main():
         rf, scaler, info, features = load_assets()
         # Preload the raw dataset for hyperparameter tuning
         preload_training_data(features)
-        # Print READY to stdout so Node knows the worker is ready
-        print("READY", flush=True)
+        # Signal readiness to Node — include tuning status so /api/health can surface it
+        startup_info = json.dumps({
+            'tuning': tuning_available,
+            'csv_exists': CSV_PATH.exists(),
+            'csv_path': str(CSV_PATH),
+            'error': preload_error
+        })
+        print(f'READY:{startup_info}', flush=True)
     except Exception as e:
         print(json.dumps({'error': f'Failed to load assets: {str(e)}'}), flush=True)
         sys.exit(1)

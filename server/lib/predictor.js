@@ -14,6 +14,7 @@ let isReady = false;
 let pendingResolves = [];
 
 let lastStderr = [];
+let workerStartupInfo = null;  // parsed from READY:{...} line
 
 function startWorker() {
   console.log('Starting persistent Python predictor worker...');
@@ -45,9 +46,17 @@ function startWorker() {
       for (let line of lines) {
         line = line.trim();
         if (!line) continue;
-        if (line === 'READY') {
+        if (line === 'READY' || line.startsWith('READY:')) {
           isReady = true;
           console.log('Python worker is READY.');
+          if (line.startsWith('READY:')) {
+            try {
+              workerStartupInfo = JSON.parse(line.slice(6));
+              console.log('Worker startup info:', workerStartupInfo);
+            } catch (e) {
+              console.warn('Could not parse READY payload:', e.message);
+            }
+          }
           continue;
         }
         if (pendingResolves.length > 0) {
@@ -112,6 +121,10 @@ module.exports = {
   predict,
   getWorkerStatus: () => ({
     isReady,
+    tuning: workerStartupInfo ? workerStartupInfo.tuning : null,
+    csvExists: workerStartupInfo ? workerStartupInfo.csv_exists : null,
+    csvPath: workerStartupInfo ? workerStartupInfo.csv_path : null,
+    preloadError: workerStartupInfo ? workerStartupInfo.error : null,
     lastStderr: lastStderr.slice(-15)
   })
 };
