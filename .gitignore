@@ -1,6 +1,7 @@
 # ── Large training data files (model already trained) ──────────────
-credit_risk_dataset.csv
+# credit_risk_dataset.csv (committed for on-the-fly UI tuning)
 esgdata_download-2026-01-09.xlsx
+
 
 # ── Node ────────────────────────────────────────────────────────────
 node_modules/

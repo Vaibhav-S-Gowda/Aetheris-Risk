@@ -40,12 +40,19 @@ router.post('/', async (req, res) => {
 
     // ── ML Prediction & Outlier Check ─────────────────────────
     let risk_probability;
+    let tuning = null;
     if (loan_percent_income > 0.85) {
       // Hard override: If loan-to-income ratio is above the training threshold (0.85),
       // it is an automatic default risk (100%).
       risk_probability = 1.0;
     } else {
-      risk_probability = await predict(mlInput);
+      const payload = {
+        ...mlInput,
+        hyperparameters: req.body.hyperparameters || null,
+      };
+      const result = await predict(payload);
+      risk_probability = result.probability;
+      tuning = result.tuning || null;
     }
     const label = riskLabel(risk_probability);
 
@@ -104,6 +111,7 @@ router.post('/', async (req, res) => {
       esg_details,
       country: countryRecord ? countryRecord.country : country,
       createdAt: createdAt,
+      tuning,
       inputs: {
         person_income: person_income,
         loan_amnt: loan_amnt,

@@ -137,12 +137,19 @@ export default function ResultsPanel({ result }) {
       <div className="card result-card">
         <div className="card-header">
           <div className="card-title">Credit Risk (ML Model)</div>
-          <span className={`risk-pill ${creditCls}`}>
-            <span className={`risk-dot ${creditCls}`} />
-            {result.risk_label}
-          </span>
+          <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+            {result.tuning && (
+              <span className="card-badge" style={{ backgroundColor: 'var(--color-bg-2)', border: '1px solid var(--color-border)', color: 'var(--color-ink)' }}>
+                Tuned
+              </span>
+            )}
+            <span className={`risk-pill ${creditCls}`}>
+              <span className={`risk-dot ${creditCls}`} />
+              {result.risk_label}
+            </span>
+          </div>
         </div>
-        <div className="stat-row">
+        <div className="stat-row" style={{ marginBottom: result.tuning ? '0.5rem' : '1.25rem' }}>
           <div>
             <div className="stat-item-label">Default Probability</div>
             <div className="stat-item-value">{creditPct}%</div>
@@ -158,6 +165,28 @@ export default function ResultsPanel({ result }) {
             style={{ width: `${result.risk_probability * 100}%` }}
           />
         </div>
+
+        {result.tuning && (
+          <div style={{ marginTop: '1rem', paddingTop: '0.85rem', borderTop: '1px dashed var(--color-border)' }}>
+            <div style={{ fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 600, color: 'var(--color-ink-2)', marginBottom: '0.5rem', textAlign: 'left' }}>
+              Tuning Performance (Subset)
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', textAlign: 'center' }}>
+              <div style={{ backgroundColor: 'var(--color-bg-2)', padding: '6px 4px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)' }}>
+                <div style={{ fontSize: '0.62rem', color: 'var(--color-ink-3)', marginBottom: '2px' }}>Val AUC</div>
+                <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--color-ink)' }}>{(result.tuning.auc * 100).toFixed(1)}%</div>
+              </div>
+              <div style={{ backgroundColor: 'var(--color-bg-2)', padding: '6px 4px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)' }}>
+                <div style={{ fontSize: '0.62rem', color: 'var(--color-ink-3)', marginBottom: '2px' }}>Accuracy</div>
+                <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--color-ink)' }}>{(result.tuning.accuracy * 100).toFixed(1)}%</div>
+              </div>
+              <div style={{ backgroundColor: 'var(--color-bg-2)', padding: '6px 4px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)' }}>
+                <div style={{ fontSize: '0.62rem', color: 'var(--color-ink-3)', marginBottom: '2px' }}>Train Latency</div>
+                <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--color-ink)' }}>{result.tuning.training_time_ms} ms</div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ── Repayment Feasibility ──────────────────────────────────── */}

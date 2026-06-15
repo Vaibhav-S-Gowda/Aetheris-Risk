@@ -74,6 +74,23 @@ export default function RiskForm({ onSubmit, loading, initialData }) {
   });
   const countries = staticCountries;
 
+  const [showTuning, setShowTuning] = useState(false);
+  const [hyper, setHyper] = useState(() => {
+    try {
+      const saved = localStorage.getItem('aetheris_hyper_state');
+      return saved ? JSON.parse(saved) : { n_estimators: 100, max_depth: 15, min_samples_split: 2 };
+    } catch {
+      return { n_estimators: 100, max_depth: 15, min_samples_split: 2 };
+    }
+  });
+
+  useEffect(() => {
+    localStorage.setItem('aetheris_hyper_state', JSON.stringify(hyper));
+  }, [hyper]);
+
+  const handleHyperChange = (key) => (e) => {
+    setHyper(prev => ({ ...prev, [key]: parseInt(e.target.value) }));
+  };
 
   useEffect(() => {
     if (initialData) {
@@ -161,6 +178,7 @@ export default function RiskForm({ onSubmit, loading, initialData }) {
       loan_amnt:            amount,
       loan_int_rate:        parseFloat(form.loan_int_rate),
       loan_percent_income:  ratio,
+      hyperparameters:      showTuning ? hyper : null
     });
   };
 
@@ -274,6 +292,96 @@ export default function RiskForm({ onSubmit, loading, initialData }) {
             }
           </select>
         </div>
+      </div>
+
+      {/* Expandable Advanced Tuning Section */}
+      <div className="advanced-tuning-container" style={{ marginTop: '1.2rem', borderTop: '1px solid var(--color-border)', paddingTop: '1.2rem' }}>
+        <button
+          type="button"
+          onClick={() => setShowTuning(!showTuning)}
+          className="btn-tuning-toggle"
+          style={{
+            background: 'none', border: 'none', padding: 0, display: 'flex', alignItems: 'center', gap: '6px',
+            fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-ink-2)', cursor: 'pointer', transition: 'var(--transition)'
+          }}
+          onMouseEnter={e => e.target.style.color = 'var(--color-ink)'}
+          onMouseLeave={e => e.target.style.color = 'var(--color-ink-2)'}
+        >
+          <svg
+            width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
+            style={{ transform: showTuning ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.2s ease', color: 'var(--color-ink-2)' }}
+          >
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+          Advanced Model Hyperparameters (Random Forest)
+        </button>
+
+        {showTuning && (
+          <div className="tuning-fields" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginTop: '1rem', padding: '1rem', backgroundColor: 'var(--color-bg-2)', borderRadius: 'var(--radius-md)', border: '1px dashed var(--color-border)', textAlign: 'left' }}>
+            
+            {/* Estimators Slider */}
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', marginBottom: '6px' }}>
+                <span>Estimators (Trees):</span>
+                <span style={{ fontWeight: 700 }}>{hyper.n_estimators}</span>
+              </label>
+              <input
+                type="range" min="10" max="150" step="10"
+                value={hyper.n_estimators}
+                onChange={handleHyperChange('n_estimators')}
+                style={{ width: '100%', accentColor: 'var(--color-ink)', cursor: 'pointer' }}
+              />
+              <span style={{ fontSize: '0.68rem', color: 'var(--color-ink-3)', display: 'block', marginTop: '4px' }}>Number of decision trees.</span>
+            </div>
+
+            {/* Max Depth Slider */}
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', marginBottom: '6px' }}>
+                <span>Max Depth:</span>
+                <span style={{ fontWeight: 700 }}>{hyper.max_depth === 'None' ? 'Unlimited' : hyper.max_depth}</span>
+              </label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <input
+                  type="range" min="2" max="20" step="1"
+                  disabled={hyper.max_depth === 'None'}
+                  value={hyper.max_depth === 'None' ? 15 : hyper.max_depth}
+                  onChange={handleHyperChange('max_depth')}
+                  style={{ flex: 1, accentColor: 'var(--color-ink)', cursor: hyper.max_depth === 'None' ? 'not-allowed' : 'pointer' }}
+                />
+                <label style={{ fontSize: '0.72rem', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', userSelect: 'none', color: 'var(--color-ink-2)' }}>
+                  <input
+                    type="checkbox"
+                    checked={hyper.max_depth === 'None'}
+                    onChange={(e) => {
+                      setHyper(prev => ({
+                        ...prev,
+                        max_depth: e.target.checked ? 'None' : 15
+                      }));
+                    }}
+                  />
+                  <span>Max</span>
+                </label>
+              </div>
+              <span style={{ fontSize: '0.68rem', color: 'var(--color-ink-3)', display: 'block', marginTop: '4px' }}>Max tree depth limit.</span>
+            </div>
+
+            {/* Min Samples Split Slider */}
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', marginBottom: '6px' }}>
+                <span>Min Split Samples:</span>
+                <span style={{ fontWeight: 700 }}>{hyper.min_samples_split}</span>
+              </label>
+              <input
+                type="range" min="2" max="10" step="1"
+                value={hyper.min_samples_split}
+                onChange={handleHyperChange('min_samples_split')}
+                style={{ width: '100%', accentColor: 'var(--color-ink)', cursor: 'pointer' }}
+              />
+              <span style={{ fontSize: '0.68rem', color: 'var(--color-ink-3)', display: 'block', marginTop: '4px' }}>Min samples to split a node.</span>
+            </div>
+
+          </div>
+        )}
       </div>
 
       <div style={{ display: 'flex', gap: '10px', marginTop: '1.4rem' }}>

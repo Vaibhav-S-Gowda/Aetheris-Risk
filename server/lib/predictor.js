@@ -52,7 +52,7 @@ function startWorker() {
           try {
             const resVal = JSON.parse(line);
             if (resVal.error) reject(new Error(resVal.error));
-            else resolve(resVal.probability);
+            else resolve(resVal);
           } catch (e) {
             reject(e);
           }
