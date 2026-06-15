@@ -11,7 +11,6 @@ const INDICATORS = [
   { key: 'political_stability', label: 'Political Stability',     positive: true,  max: 2.5, min: -2.5 },
   { key: 'rule_of_law',         label: 'Rule of Law',             positive: true,  max: 2.5, min: -2.5 },
   { key: 'forest_area',         label: 'Forest Area (%)',         positive: true,  max: 100 },
-  { key: 'fossil_fuel',         label: 'Fossil Fuel Use (%)',     positive: false, max: 100 },
   { key: 'ghg_per_capita',      label: 'GHG per Capita (t CO2e)', positive: false, max: 50 },
   { key: 'unemployment',        label: 'Unemployment (%)',        positive: false, max: 40 },
   { key: 'pm25',                label: 'PM2.5 Pollution',         positive: false, max: 100 },
