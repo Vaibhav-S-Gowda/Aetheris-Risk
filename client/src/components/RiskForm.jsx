@@ -4,12 +4,13 @@
  * Manages form state and dispatches evaluate() on submission.
  */
 import { useState, useEffect } from 'react';
-import { fetchCountries } from '../api';
+import staticCountries from '../data/countries.json';
 
 const HOME_OWNERSHIP_OPTIONS = ['RENT', 'OWN', 'MORTGAGE', 'OTHER'];
 const LOAN_INTENT_OPTIONS     = ['PERSONAL', 'EDUCATION', 'MEDICAL', 'VENTURE', 'HOMEIMPROVEMENT', 'DEBTCONSOLIDATION'];
 const LOAN_GRADE_OPTIONS      = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
 const DEFAULT_OPTIONS         = ['Y', 'N'];
+
 
 // ── Currency map (ISO3 → { symbol, code }) ──────────────────────────────────
 const CURRENCY_MAP = {
@@ -71,13 +72,8 @@ export default function RiskForm({ onSubmit, loading, initialData }) {
       return DEFAULT_FORM;
     }
   });
-  const [countries, setCountries] = useState([]);
+  const countries = staticCountries;
 
-  useEffect(() => {
-    fetchCountries()
-      .then(setCountries)
-      .catch(() => setCountries([]));
-  }, []);
 
   useEffect(() => {
     if (initialData) {

@@ -193,7 +193,7 @@ export default function App() {
             </svg>
           </button>
         </div>
-        <HistoryPanel refreshKey={refreshKey} onSelectRecord={handleSelectRecord} />
+        {showHistory && <HistoryPanel refreshKey={refreshKey} onSelectRecord={handleSelectRecord} />}
       </div>
     </div>
   );
