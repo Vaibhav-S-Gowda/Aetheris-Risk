@@ -50,8 +50,14 @@ export default function HistoryPanel({ refreshKey, onSelectRecord }) {
     }
   };
 
-  const handleClearAll = async () => {
-    if (!window.confirm('Clear all evaluation history?')) return;
+  const [showConfirmClear, setShowConfirmClear] = useState(false);
+
+  const handleClearAll = () => {
+    setShowConfirmClear(true);
+  };
+
+  const confirmClearAll = async () => {
+    setShowConfirmClear(false);
     try {
       setError(null);
       await clearHistory();
@@ -153,6 +159,66 @@ export default function HistoryPanel({ refreshKey, onSelectRecord }) {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {showConfirmClear && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+          backgroundColor: 'rgba(0, 0, 0, 0.45)', backdropFilter: 'blur(3px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            backgroundColor: 'var(--color-bg)', border: '1px solid var(--color-border)',
+            borderRadius: 'var(--radius-md)', padding: '1.6rem', width: '90%', maxWidth: '360px',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.15), 0 10px 10px -5px rgba(0, 0, 0, 0.05)',
+            textAlign: 'center'
+          }}>
+            <div style={{
+              width: '44px', height: '44px', borderRadius: '50%', backgroundColor: '#fef2f2',
+              border: '1px solid #fee2e2', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              margin: '0 auto 1rem', color: '#dc2626'
+            }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, margin: '0 0 0.5rem', color: 'var(--color-ink)' }}>
+              Clear History
+            </h3>
+            <p style={{ fontSize: '0.8rem', color: 'var(--color-ink-3)', margin: '0 0 1.5rem', lineHeight: '1.455' }}>
+              Are you sure you want to permanently clear all evaluation history? This action cannot be undone.
+            </p>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button
+                onClick={() => setShowConfirmClear(false)}
+                style={{
+                  flex: 1, padding: '10px', backgroundColor: 'var(--color-bg)',
+                  border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)',
+                  fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-ink)',
+                  cursor: 'pointer', transition: 'var(--transition)'
+                }}
+                onMouseEnter={e => { e.target.style.backgroundColor = 'var(--color-bg-2)'; }}
+                onMouseLeave={e => { e.target.style.backgroundColor = 'var(--color-bg)'; }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmClearAll}
+                style={{
+                  flex: 1, padding: '10px', backgroundColor: '#dc2626',
+                  border: 'none', borderRadius: 'var(--radius-sm)',
+                  fontSize: '0.78rem', fontWeight: 600, color: '#ffffff',
+                  cursor: 'pointer', transition: 'var(--transition)'
+                }}
+                onMouseEnter={e => { e.target.style.backgroundColor = '#b91c1c'; }}
+                onMouseLeave={e => { e.target.style.backgroundColor = '#dc2626'; }}
+              >
+                Clear All
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
