@@ -13,6 +13,8 @@ let pyProcess = null;
 let isReady = false;
 let pendingResolves = [];
 
+let lastStderr = [];
+
 function startWorker() {
   console.log('Starting persistent Python predictor worker...');
   
@@ -28,6 +30,7 @@ function startWorker() {
         setupProcess(proc, 'python');
       } else {
         console.error(`Python spawn error (${cmd}):`, err.message);
+        lastStderr.push(`Spawn error: ${err.message}`);
         // Fail any pending predictions
         const active = pendingResolves;
         pendingResolves = [];
@@ -61,11 +64,15 @@ function startWorker() {
     });
 
     p.stderr.on('data', (chunk) => {
-      console.warn('Python Stderr:', chunk.toString().trim());
+      const msg = chunk.toString().trim();
+      console.warn('Python Stderr:', msg);
+      lastStderr.push(msg);
+      if (lastStderr.length > 50) lastStderr.shift();
     });
 
     p.on('close', (code) => {
       console.warn(`Python worker exited with code ${code}`);
+      lastStderr.push(`Process exited with code ${code}`);
       isReady = false;
       const active = pendingResolves;
       pendingResolves = [];
@@ -101,5 +108,11 @@ function predict(inputData) {
   });
 }
 
-module.exports = { predict };
+module.exports = {
+  predict,
+  getWorkerStatus: () => ({
+    isReady,
+    lastStderr: lastStderr.slice(-15)
+  })
+};
 

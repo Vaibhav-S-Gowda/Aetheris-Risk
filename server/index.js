@@ -39,8 +39,15 @@ app.use('/api/countries', require('./routes/countries'));
 app.use('/api/evaluate',  require('./routes/evaluate'));
 app.use('/api/history',   require('./routes/history'));
 
+const { getWorkerStatus } = require('./lib/predictor');
+
 // Health check
-app.get('/api/health', (_, res) => res.json({ status: 'ok' }));
+app.get('/api/health', (_, res) => {
+  res.json({
+    status: 'ok',
+    worker: getWorkerStatus()
+  });
+});
 
 // ── MongoDB Connection + Server Start ─────────────────────────────────────────
 // Disable buffering so queries fail fast when database is offline
