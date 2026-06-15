@@ -16,7 +16,7 @@ let pendingResolves = [];
 function startWorker() {
   console.log('Starting persistent Python predictor worker...');
   
-  let pythonCmd = 'python3';
+  let pythonCmd = process.platform === 'win32' ? 'python' : 'python3';
   let proc = spawn(pythonCmd, [PREDICT_SCRIPT]);
   let stdoutBuffer = '';
 
