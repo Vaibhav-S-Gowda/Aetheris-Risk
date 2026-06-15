@@ -11,7 +11,7 @@ from sklearn.metrics import roc_auc_score, accuracy_score
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 
 ASSETS = Path(__file__).parent / 'model_assets'
-CSV_PATH = Path(__file__).parent.parent / 'credit_risk_dataset.csv'
+CSV_PATH = Path(__file__).parent / 'data' / 'credit_risk_dataset.csv'
 
 # Preloaded training data for on-the-fly hyperparameter tuning
 X_train_s = None
