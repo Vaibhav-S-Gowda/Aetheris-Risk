@@ -26,6 +26,7 @@ export default function App() {
   const [drawerTab, setDrawerTab] = useState('history'); // 'history' | 'models'
   const [selectedInputs, setSelectedInputs] = useState(null);
   const [modelRuns, setModelRuns] = useState(() => loadModelRuns());
+  const [activeTab, setActiveTab] = useState('evaluation'); // 'evaluation' | 'methodology'
 
   const mainRef = useRef(null);
 
@@ -194,7 +195,21 @@ export default function App() {
                 </span>
               )}
             </button>
-            <div className="header-badge">Powered by Random Forest</div>
+            <button
+              onClick={() => setActiveTab('methodology')}
+              className="header-badge"
+              style={{
+                cursor: 'pointer',
+                border: 'none',
+                backgroundColor: 'var(--color-ink)',
+                color: 'var(--color-bg)',
+                transition: 'var(--transition)'
+              }}
+              onMouseEnter={e => e.target.style.opacity = 0.8}
+              onMouseLeave={e => e.target.style.opacity = 1}
+            >
+              Powered by Random Forest
+            </button>
           </div>
         </div>
       </header>
@@ -224,38 +239,66 @@ export default function App() {
           </div>
         </div>
 
-        {/* Dashboard Content Grid */}
-        <div className="dashboard-grid">
-          {/* Form Card */}
-          <div className="card form-card anim-in">
-            <div className="card-header">
-              <div className="card-title">Risk Parameters</div>
-              <span className="card-badge">Credit + ESG</span>
+        {/* Navigation Tabs */}
+        <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid var(--color-border)', paddingBottom: '2px', marginBottom: '1.25rem' }} className="anim-in">
+          <button
+            onClick={() => setActiveTab('evaluation')}
+            style={{
+              background: 'none', border: 'none', padding: '10px 16px', fontSize: '0.82rem', fontWeight: 600,
+              cursor: 'pointer', color: activeTab === 'evaluation' ? 'var(--color-ink)' : 'var(--color-ink-3)',
+              borderBottom: activeTab === 'evaluation' ? '2px solid var(--color-ink)' : '2px solid transparent',
+              transition: 'var(--transition)'
+            }}
+          >
+            Risk Analysis
+          </button>
+          <button
+            onClick={() => setActiveTab('methodology')}
+            style={{
+              background: 'none', border: 'none', padding: '10px 16px', fontSize: '0.82rem', fontWeight: 600,
+              cursor: 'pointer', color: activeTab === 'methodology' ? 'var(--color-ink)' : 'var(--color-ink-3)',
+              borderBottom: activeTab === 'methodology' ? '2px solid var(--color-ink)' : '2px solid transparent',
+              transition: 'var(--transition)'
+            }}
+          >
+            Model Selection & Benchmarks
+          </button>
+        </div>
+
+        {activeTab === 'evaluation' ? (
+          /* Dashboard Content Grid */
+          <div className="dashboard-grid">
+            {/* Form Card */}
+            <div className="card form-card anim-in">
+              <div className="card-header">
+                <div className="card-title">Risk Parameters</div>
+                <span className="card-badge">Credit + ESG</span>
+              </div>
+
+              {error && (
+                <div className="error-banner">
+                  ⚠ {error}
+                </div>
+              )}
+
+              <RiskForm onSubmit={handleSubmit} loading={loading} initialData={selectedInputs} />
             </div>
 
-            {error && (
-              <div className="error-banner">
-                ⚠ {error}
-              </div>
-            )}
-
-            <RiskForm onSubmit={handleSubmit} loading={loading} initialData={selectedInputs} />
+            {/* Results Panel */}
+            <div className="anim-in results-col">
+              <ResultsPanel result={result} />
+            </div>
           </div>
-
-          {/* Results Panel */}
-          <div className="anim-in results-col">
-            <ResultsPanel result={result} />
+        ) : (
+          /* Model Card & Technical Benchmarks */
+          <div className="card anim-in" style={{ marginTop: '0.5rem', padding: '1.75rem' }}>
+            <div className="card-header" style={{ marginBottom: '1.25rem' }}>
+              <div className="card-title">Model Selection & Benchmarks</div>
+              <span className="card-badge" style={{ backgroundColor: 'var(--color-ink)', color: 'var(--color-bg)' }}>Methodology</span>
+            </div>
+            <ModelComparisonPanel />
           </div>
-        </div>
-
-        {/* Model Card & Technical Benchmarks */}
-        <div className="card anim-in" style={{ marginTop: '1rem', padding: '1.5rem' }}>
-          <div className="card-header" style={{ marginBottom: '1.25rem' }}>
-            <div className="card-title">Model Selection & Benchmarks</div>
-            <span className="card-badge" style={{ backgroundColor: 'var(--color-ink)', color: 'var(--color-bg)' }}>Methodology</span>
-          </div>
-          <ModelComparisonPanel />
-        </div>
+        )}
 
       </main>
 
