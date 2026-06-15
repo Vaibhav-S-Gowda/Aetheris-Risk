@@ -91,7 +91,7 @@ export default function ModelRunsPanel({ runs, onClear, onSelectRun }) {
       </div>
 
       {/* Scrollable runs list */}
-      <div style={{ overflowY: 'auto', flex: 1, padding: '0 1rem 1rem' }}>
+      <div style={{ overflowY: 'auto', flex: 1, padding: '0.5rem 1rem 1rem' }}>
         {runs.map((run, i) => {
           const isBest = i === bestIdx;
           const isHovered = hoveredId === run.id;
@@ -116,17 +116,18 @@ export default function ModelRunsPanel({ runs, onClear, onSelectRun }) {
                 transition: 'transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease',
               }}
             >
-              {isBest && (
-                <span style={{ position: 'absolute', top: '-9px', left: '10px', backgroundColor: 'var(--color-ink)', color: 'var(--color-bg)', fontSize: '0.58rem', fontWeight: 700, padding: '1px 7px', borderRadius: '99px', letterSpacing: '0.05em', textTransform: 'uppercase', border: isBest && isHovered ? '1px solid var(--color-bg)' : 'none' }}>
-                  ★ Best AUC
-                </span>
-              )}
-
               {/* Run meta */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                <span style={{ fontSize: '0.7rem', opacity: isBest ? 0.65 : 1, color: isBest ? 'inherit' : 'var(--color-ink-3)' }}>
-                  Run #{runs.length - i} · {formatDate(run.timestamp)}
-                </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  {isBest && (
+                    <span style={{ backgroundColor: isBest ? 'rgba(255,255,255,0.18)' : 'var(--color-bg-2)', color: 'inherit', fontSize: '0.56rem', fontWeight: 700, padding: '1px 7px', borderRadius: '99px', letterSpacing: '0.05em', textTransform: 'uppercase', border: '1px solid rgba(255,255,255,0.25)', whiteSpace: 'nowrap' }}>
+                      ★ Best AUC
+                    </span>
+                  )}
+                  <span style={{ fontSize: '0.7rem', opacity: isBest ? 0.65 : 1, color: isBest ? 'inherit' : 'var(--color-ink-3)' }}>
+                    Run #{runs.length - i} · {formatDate(run.timestamp)}
+                  </span>
+                </div>
                 <span style={{
                   fontSize: '0.68rem', fontWeight: 600, padding: '2px 7px', borderRadius: '99px',
                   backgroundColor: isBest ? 'rgba(255,255,255,0.15)' : 'var(--color-bg-2)',
