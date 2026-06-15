@@ -31,6 +31,7 @@ export function saveModelRun(result, hyperparameters) {
       risk_probability: result.risk_probability,
       risk_label: result.risk_label,
       composite_score: result.composite_score,
+      result,
     };
     // Keep latest 20 runs
     const updated = [newRun, ...runs].slice(0, 20);

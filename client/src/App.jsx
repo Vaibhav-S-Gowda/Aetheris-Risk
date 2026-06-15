@@ -110,8 +110,17 @@ export default function App() {
   };
 
   const handleSelectRun = (run) => {
-    const runResult = run.result;
-    if (!runResult) return;
+    let runResult = run.result;
+    if (!runResult) {
+      // Fallback for runs generated before the fix
+      runResult = {
+        risk_probability: run.risk_probability,
+        risk_label: run.risk_label,
+        composite_score: run.composite_score,
+        composite_label: run.risk_label,
+        tuning: run.metrics,
+      };
+    }
 
     // 1. Update results panel
     setResult(runResult);
