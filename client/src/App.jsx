@@ -3,9 +3,10 @@
  */
 import { useState, useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
-import RiskForm     from './components/RiskForm';
-import ResultsPanel from './components/ResultsPanel';
-import HistoryPanel from './components/HistoryPanel';
+import RiskForm        from './components/RiskForm';
+import ResultsPanel    from './components/ResultsPanel';
+import HistoryPanel    from './components/HistoryPanel';
+import ModelRunsPanel, { saveModelRun, loadModelRuns } from './components/ModelRunsPanel';
 import { evaluate } from './api';
 
 export default function App() {
@@ -21,7 +22,9 @@ export default function App() {
   const [error,      setError]      = useState(null);
   const [refreshKey, setRefreshKey] = useState(0);
   const [showHistory, setShowHistory] = useState(false);
+  const [drawerTab, setDrawerTab] = useState('history'); // 'history' | 'models'
   const [selectedInputs, setSelectedInputs] = useState(null);
+  const [modelRuns, setModelRuns] = useState(() => loadModelRuns());
 
   const mainRef = useRef(null);
 
@@ -53,6 +56,11 @@ export default function App() {
       setResult(res);
       localStorage.setItem('aetheris_active_result', JSON.stringify(res));
       setRefreshKey(k => k + 1);
+      // Save tuned model run for Model Evaluation tab
+      if (res.tuning && formData.hyperparameters) {
+        const updated = saveModelRun(res, formData.hyperparameters);
+        setModelRuns(updated);
+      }
     } catch (err) {
       const msg = err.response?.data?.error || err.message || 'Evaluation failed';
       setError(msg);
@@ -116,7 +124,7 @@ export default function App() {
           </a>
           <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
             <button
-              onClick={() => setShowHistory(true)}
+              onClick={() => { setDrawerTab('history'); setShowHistory(true); }}
               className="btn-history-toggle"
               aria-label="Toggle history panel"
             >
@@ -124,6 +132,22 @@ export default function App() {
                 <path d="M8.5 0a7.5 7.5 0 0 0-7.5 7.5c0 .35.03.7.08 1.04l1.37-.23A6 6 0 1 1 8 14v-1.5a4.5 4.5 0 1 0-3.3-1.42l-1.07 1.07A6 6 0 0 1 8.5 0zm-.5 3a.5.5 0 0 1 .5.5v4.2l3.15 1.9a.5.5 0 0 1-.5.86L8 8.35a.5.5 0 0 1-.5-.43V3.5a.5.5 0 0 1 .5-.5z"/>
               </svg>
               <span>History</span>
+            </button>
+            <button
+              onClick={() => { setDrawerTab('models'); setShowHistory(true); }}
+              className="btn-history-toggle"
+              aria-label="Toggle model runs panel"
+              style={{ position: 'relative' }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ verticalAlign: 'middle' }}>
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+              </svg>
+              <span>Model Runs</span>
+              {modelRuns.length > 0 && (
+                <span style={{ position: 'absolute', top: '-4px', right: '-4px', backgroundColor: 'var(--color-ink)', color: 'var(--color-bg)', fontSize: '0.55rem', fontWeight: 700, width: '14px', height: '14px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {modelRuns.length}
+                </span>
+              )}
             </button>
             <div className="header-badge">Powered by Random Forest</div>
           </div>
@@ -185,7 +209,7 @@ export default function App() {
       />
       <div className={`history-drawer ${showHistory ? 'open' : ''}`}>
         <div className="drawer-header">
-          <div className="drawer-title">Evaluation History</div>
+          <div className="drawer-title">{drawerTab === 'history' ? 'Evaluation History' : 'Model Evaluation'}</div>
           <button className="btn-drawer-close" onClick={() => setShowHistory(false)} aria-label="Close drawer">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -193,7 +217,35 @@ export default function App() {
             </svg>
           </button>
         </div>
-        {showHistory && <HistoryPanel refreshKey={refreshKey} onSelectRecord={handleSelectRecord} />}
+
+        {/* Drawer tabs */}
+        <div style={{ display: 'flex', borderBottom: '1px solid var(--color-border)', padding: '0 1rem', flexShrink: 0 }}>
+          {[['history', 'History'], ['models', 'Model Runs']].map(([tab, label]) => (
+            <button
+              key={tab}
+              onClick={() => setDrawerTab(tab)}
+              style={{
+                background: 'none', border: 'none', padding: '8px 12px', fontSize: '0.78rem', fontWeight: 600,
+                cursor: 'pointer', color: drawerTab === tab ? 'var(--color-ink)' : 'var(--color-ink-3)',
+                borderBottom: drawerTab === tab ? '2px solid var(--color-ink)' : '2px solid transparent',
+                marginBottom: '-1px', transition: 'var(--transition)'
+              }}
+            >
+              {label}{tab === 'models' && modelRuns.length > 0 ? ` (${modelRuns.length})` : ''}
+            </button>
+          ))}
+        </div>
+
+        {showHistory && drawerTab === 'history' && <HistoryPanel refreshKey={refreshKey} onSelectRecord={handleSelectRecord} />}
+        {showHistory && drawerTab === 'models' && (
+          <ModelRunsPanel
+            runs={modelRuns}
+            onClear={() => {
+              localStorage.removeItem('aetheris_model_runs');
+              setModelRuns([]);
+            }}
+          />
+        )}
       </div>
     </div>
   );
