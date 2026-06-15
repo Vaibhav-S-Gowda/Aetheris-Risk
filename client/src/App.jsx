@@ -224,29 +224,32 @@ export default function App() {
           </div>
         </div>
 
-        {/* Form Card */}
-        <div className="card form-card anim-in">
-          <div className="card-header">
-            <div className="card-title">Risk Parameters</div>
-            <span className="card-badge">Credit + ESG</span>
+        {/* Dashboard Content Grid */}
+        <div className="dashboard-grid">
+          {/* Form Card */}
+          <div className="card form-card anim-in">
+            <div className="card-header">
+              <div className="card-title">Risk Parameters</div>
+              <span className="card-badge">Credit + ESG</span>
+            </div>
+
+            {error && (
+              <div className="error-banner">
+                ⚠ {error}
+              </div>
+            )}
+
+            <RiskForm onSubmit={handleSubmit} loading={loading} initialData={selectedInputs} />
           </div>
 
-          {error && (
-            <div className="error-banner">
-              ⚠ {error}
-            </div>
-          )}
-
-          <RiskForm onSubmit={handleSubmit} loading={loading} initialData={selectedInputs} />
-        </div>
-
-        {/* Results Panel */}
-        <div className="anim-in results-col">
-          <ResultsPanel result={result} />
+          {/* Results Panel */}
+          <div className="anim-in results-col">
+            <ResultsPanel result={result} />
+          </div>
         </div>
 
         {/* Model Card & Technical Benchmarks */}
-        <div className="card anim-in" style={{ gridColumn: '1 / -1', marginTop: '1rem', padding: '1.5rem' }}>
+        <div className="card anim-in" style={{ marginTop: '1rem', padding: '1.5rem' }}>
           <div className="card-header" style={{ marginBottom: '1.25rem' }}>
             <div className="card-title">Model Selection & Benchmarks</div>
             <span className="card-badge" style={{ backgroundColor: 'var(--color-ink)', color: 'var(--color-bg)' }}>Methodology</span>
